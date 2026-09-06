@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assignment & Dispatch — Live | Syncnox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --g:#10B981; --g-deep:#0A7A57; --dark:#06140F;
+    --ink:#0B1512; --ink2:#57635F; --grey:#727E79; --faint:#9AA5A0;
+    --line:#E4E8E4; --line2:#DBE1DC;
+    --amber:#C77A12; --red:#C8544C; --redbg:#FBEEED;
+    --f:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --e:cubic-bezier(.22,.7,.25,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;border-radius:0}
+  html,body{margin:0}
+  body{font-family:var(--f);background:transparent;color:var(--ink2);-webkit-font-smoothing:antialiased;letter-spacing:-.011em}
+  #stage{width:100%;overflow:hidden}
+  .card{width:960px;transform-origin:top left;background:#fff;overflow:hidden}
+
+  .head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 18px;border-bottom:1px solid var(--line)}
+  .h-left{display:flex;align-items:center;gap:11px;min-width:0}
+  .mk{width:24px;height:24px;background:linear-gradient(120deg,#0A7C5A,#10B981 55%,#34E9A6);position:relative;flex:none}
+  .mk::after{content:"";position:absolute;width:6px;height:6px;background:#fff;right:4px;bottom:4px}
+  .h-t{font-size:.92rem;font-weight:700;color:var(--ink);letter-spacing:-.02em;line-height:1.15}
+  .h-t span{display:block;font-size:.72rem;font-weight:500;color:var(--faint);letter-spacing:0}
+  .status{display:inline-flex;align-items:center;gap:.5em;font-size:.72rem;font-weight:600;padding:.4em .75em;border:1px solid transparent;transition:.3s;white-space:nowrap}
+  .status .sd{width:6px;height:6px;background:currentColor}
+  .status.live{background:#E9F7EF;color:#0A7A57;border-color:#CFE9DB}
+  .status.live .sd{animation:pulse 1.4s ease-in-out infinite}
+  .status.run{background:#FCF1E2;color:#B06806;border-color:#F0DDBE}
+  .status.run .sd{animation:blink 1s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  @keyframes blink{50%{opacity:.3}}
+
+  .body{display:grid;grid-template-columns:280px 1fr;gap:0}
+  .colhead{font-size:.66rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);margin-bottom:13px;display:flex;align-items:center;gap:.5em}
+  .colhead .cn{background:#EDF1EF;color:#5B6660;font-weight:700;font-size:.62rem;padding:.1em .5em}
+
+  .jobcol{border-right:1px solid var(--line);padding:22px 20px;background:#FAFBFA}
+  .job{background:#fff;border:1px solid var(--line);box-shadow:0 6px 20px -10px rgba(8,20,15,.2);padding:16px;opacity:0;transform:translateY(10px);transition:opacity .4s var(--e),transform .4s var(--e)}
+  .job.show{opacity:1;transform:none}
+  .job .jt{display:flex;align-items:center;gap:.55em;font-size:.9rem;font-weight:700;color:var(--ink);margin-bottom:4px}
+  .job .jt .pk{width:22px;height:22px;background:var(--dark);display:flex;align-items:center;justify-content:center;flex:none}
+  .job .jt .pk svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .job .jaddr{font-size:.76rem;color:var(--grey);font-weight:500;margin-bottom:14px;padding-left:calc(22px + .55em)}
+  .reqs{display:flex;flex-direction:column;gap:10px}
+  .reqlab{font-size:.62rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:-2px}
+  .req{display:flex;align-items:center;gap:9px;font-size:.82rem;color:var(--ink);font-weight:500}
+  .req .ic{width:24px;height:24px;background:#EEF6F1;display:flex;align-items:center;justify-content:center;flex:none}
+  .req .ic svg{width:13px;height:13px;stroke:var(--g-deep);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .req b{font-weight:700}
+  .assignline{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:flex;align-items:center;gap:.55em;font-size:.82rem;font-weight:700;color:var(--g-deep);opacity:0;transition:opacity .4s ease}
+  .assignline.show{opacity:1}
+  .assignline .av2{width:22px;height:22px;background:var(--g);color:#fff;font-weight:700;font-size:.72rem;display:flex;align-items:center;justify-content:center;flex:none}
+
+  .drivers{padding:22px 22px 20px}
+  .dlist{display:flex;flex-direction:column;gap:10px}
+  .drv{border:1.5px solid var(--line);background:#fff;padding:13px 15px;display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;transition:border-color .35s,background .35s,box-shadow .35s,opacity .35s,transform .35s;opacity:0;transform:translateY(8px)}
+  .drv.in{opacity:1;transform:none}
+  .drv.win{border-color:var(--g);background:#F2FBF6;box-shadow:0 10px 24px -10px rgba(16,185,129,.5)}
+  .drv.dq{background:#FCF6F5;border-color:#EFD9D6}
+  .drv.out{opacity:.45}
+  .av{width:40px;height:40px;background:#EEF2F0;color:#516059;font-weight:700;font-size:.95rem;display:flex;align-items:center;justify-content:center;flex:none;transition:.35s}
+  .drv.win .av{background:var(--g);color:#fff}
+  .drv.dq .av{background:#F3E3E1;color:#B26B64}
+  .dmid{min-width:0}
+  .dtop{display:flex;align-items:center;gap:.6em;margin-bottom:8px}
+  .dname{font-size:.92rem;font-weight:700;color:var(--ink)}
+  .load{font-size:.68rem;font-weight:600;color:var(--grey);background:#F1F4F2;padding:.14em .5em;white-space:nowrap}
+  .drv.win .load{background:#DDF3E7;color:var(--g-deep)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{display:inline-flex;align-items:center;gap:.34em;font-size:.68rem;font-weight:600;padding:.26em .55em;background:#F2F5F3;color:#7C867F;border:1px solid transparent;transition:.3s;opacity:.35}
+  .chip.on{opacity:1}
+  .chip svg{width:11px;height:11px;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+  .chip.pass{background:#E9F7EF;color:var(--g-deep)} .chip.pass svg{stroke:var(--g-deep)}
+  .chip.fail{background:var(--redbg);color:var(--red)} .chip.fail svg{stroke:var(--red)}
+  .score{text-align:right;flex:none;min-width:58px}
+  .score .sv{font-size:1.2rem;font-weight:800;color:var(--faint);letter-spacing:-.03em;line-height:1;transition:color .35s}
+  .drv.win .score .sv{color:var(--g-deep)}
+  .drv.dq .score .sv{color:var(--red)}
+  .score .sl{font-size:.58rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin-top:3px}
+  .verdict{font-size:.6rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:.16em .5em;margin-top:6px;display:inline-block;opacity:0;transition:opacity .3s}
+  .verdict.show{opacity:1}
+  .verdict.win{background:var(--g);color:#fff}
+  .verdict.dq{background:#F3DEDB;color:var(--red)}
+  .verdict.skip{background:#F1EEEC;color:#A08E86}
+
+  @media(max-width:600px){.body{grid-template-columns:1fr}.jobcol{border-right:none;border-bottom:1px solid var(--line)}}
+
+  .toast{position:absolute;top:14px;left:50%;transform:translateX(-50%) translateY(-10px);background:#0B1512;color:#fff;padding:10px 15px;box-shadow:0 12px 30px -10px rgba(8,20,15,.5);opacity:0;transition:opacity .35s ease,transform .35s ease;pointer-events:none;display:flex;align-items:center;gap:.65em;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.warn{background:#3A2A0E}
+  .toast .tk{width:16px;height:16px;background:#10B981;display:flex;align-items:center;justify-content:center;flex:none}
+  .toast.warn .tk{background:var(--amber)}
+  .toast .tk svg{width:11px;height:11px;stroke:#fff;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  .toast .tt{font-size:.82rem;font-weight:600;color:#fff}
+  .toast .tt b{color:#8FF0C6}
+  .toast.warn .tt b{color:#F3C77A}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line)}
+  .stat{padding:15px 18px;border-right:1px solid var(--line)}
+  .stat:last-child{border-right:none}
+  .stat .l{font-size:.66rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+  .stat .v{font-size:1.32rem;font-weight:700;letter-spacing:-.03em;line-height:1.15;margin-top:5px;color:var(--ink);transition:color .3s;display:inline-block;transform-origin:left center}
+  .stat .v.on{color:#0A7A57}
+  .stat .v.bump{animation:bump .5s cubic-bezier(.34,1.5,.64,1)}
+  @keyframes bump{0%{transform:scale(1)}45%{transform:scale(1.3)}100%{transform:scale(1)}}
+  .stat .v .u{font-size:.62em;font-weight:600;color:var(--grey)}
+  .stat .sub{font-size:.72rem;color:var(--grey);font-weight:500;margin-top:2px}
+  @media(max-width:600px){.stat{padding:12px 13px}.stat .v{font-size:1.14rem}}
+  .pos{position:relative}
+</style>
+</head>
+<body>
+  <div id="stage">
+  <div class="card" role="img" aria-label="Live assignment: a cold-chain delivery is scored against every driver on distance, skills, capacity and hours. The nearest driver is disqualified for being over his legal hours, and another for lacking the cold-chain certification, so the job goes to the closest fully-qualified driver and is dispatched. When his van breaks down, the job is re-matched live to the next best driver.">
+    <div class="head">
+      <div class="h-left">
+        <span class="mk"></span>
+        <div class="h-t">Assignment &amp; dispatch<span>Live · matching every job to the right driver</span></div>
+      </div>
+      <span class="status live" id="status"><span class="sd"></span><span id="statusTxt">Live</span></span>
+    </div>
+
+    <div class="body pos">
+      <div class="jobcol">
+        <div class="colhead">Incoming job</div>
+        <div class="job" id="job">
+          <div class="jt"><span class="pk"><svg viewBox="0 0 24 24"><path d="M4 7h16v12H4z"/><path d="M4 7l8 5 8-5"/></svg></span>Order #2148</div>
+          <div class="jaddr">Riverside Clinic · 6.2 mi from depot</div>
+          <div class="reqs">
+            <div class="reqlab">Requires</div>
+            <div class="req"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0-10-10"/><path d="M12 12l4-2"/></svg></span><span><b>Cold-chain</b> certified vehicle</span></div>
+            <div class="req"><span class="ic"><svg viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 10h18M5 6h14v14H5z"/></svg></span><span>Delivered by <b>5:00 PM</b> window</span></div>
+            <div class="req"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 7h13l3 4v6H4z"/><circle cx="8" cy="17" r="1.6"/><circle cx="16" cy="17" r="1.6"/></svg></span><span>2 pallets · <b>within capacity</b></span></div>
+          </div>
+          <div class="assignline" id="assignLine"><span class="av2" id="assignAv">M</span><span id="assignTxt">Assigned to Marcus</span></div>
+        </div>
+      </div>
+
+      <div class="drivers">
+        <div class="colhead">Drivers scored <span class="cn">4 available</span></div>
+        <div class="dlist" id="dlist"></div>
+      </div>
+
+      <div class="toast" id="toast">
+        <span class="tk"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <span class="tt" id="toastTxt">Dispatched to <b>Marcus</b> · sequenced route in app</span>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="l">Best match</div><div class="v" id="sMatch">—</div><div class="sub" id="sMatchSub">Scoring every driver…</div></div>
+      <div class="stat"><div class="l">Assigned today</div><div class="v" id="sAssigned">148</div><div class="sub">Automatic · no dispatcher</div></div>
+      <div class="stat"><div class="l">Avg assign time</div><div class="v" id="sTime">0.4<span class="u"> s</span></div><div class="sub">Nearest · skilled · legal</div></div>
+    </div>
+  </div>
+  </div><!-- /stage -->
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var FACT=["Distance","Cold-chain","Capacity","Hours"];
+  var DRIVERS=[
+    {n:"Dan",    init:"D", load:"6 stops today",
+     chips:[{t:"2.4 mi",p:true},{t:"Certified",p:true},{t:"Room",p:true},{t:"Over hours",p:false}],
+     score:41, verdict:"dq", vlabel:"Over legal hours"},
+    {n:"Aisha",  init:"A", load:"4 stops today",
+     chips:[{t:"3.1 mi",p:true},{t:"No cert",p:false},{t:"Room",p:true},{t:"4h left",p:true}],
+     score:44, verdict:"dq", vlabel:"Not cold-chain"},
+    {n:"Marcus", init:"M", load:"4 stops today", win:true,
+     chips:[{t:"5.8 mi",p:true},{t:"Certified",p:true},{t:"Room",p:true},{t:"4h left",p:true}],
+     score:92, verdict:"win", vlabel:"Best qualified match"},
+    {n:"Priya",  init:"P", load:"7 stops today",
+     chips:[{t:"9.0 mi",p:true},{t:"Certified",p:true},{t:"Tight",p:true},{t:"3h left",p:true}],
+     score:71, verdict:"skip", vlabel:"Further · heavier load"}
+  ];
+
+  var dlist=$("dlist"), rows=[];
+  DRIVERS.forEach(function(d){
+    var el=document.createElement("div"); el.className="drv";
+    el.innerHTML=
+      '<div class="av">'+d.init+'</div>'+
+      '<div class="dmid">'+
+        '<div class="dtop"><span class="dname">'+d.n+'</span><span class="load">'+d.load+'</span></div>'+
+        '<div class="chips">'+d.chips.map(function(c){return '<span class="chip">'+
+          '<svg viewBox="0 0 24 24">'+(c.p?'<path d="M20 6 9 17l-5-5"/>':'<path d="M6 6l12 12M18 6 6 18"/>')+'</svg>'+c.t+'</span>';}).join('')+'</div>'+
+        '<span class="verdict">'+d.vlabel+'</span>'+
+      '</div>'+
+      '<div class="score"><div class="sv">0</div><div class="sl">match</div></div>';
+    dlist.appendChild(el);
+    rows.push({d:d,el:el,chips:el.querySelectorAll(".chip"),sv:el.querySelector(".sv"),verdict:el.querySelector(".verdict")});
+  });
+  var winner=rows.filter(function(r){return r.d.win;})[0];
+
+  var sleep=function(ms){return new Promise(function(r){setTimeout(r,ms);});};
+  function anim(el,kf,opt){try{return el.animate(kf,opt);}catch(e){return null;}}
+  function setStatus(m,t){$("status").className="status "+m;$("statusTxt").textContent=t;}
+  function countTo(el,from,to,dur,suffix){var s=null;function step(ts){if(s===null)s=ts;var p=Math.min((ts-s)/dur,1);var e=1-Math.pow(1-p,3);el.textContent=Math.round(from+(to-from)*e)+(suffix||"");if(p<1)requestAnimationFrame(step);}requestAnimationFrame(step);}
+
+  function resetRows(){
+    rows.forEach(function(r){
+      r.el.className="drv"; r.sv.textContent="0";
+      r.chips.forEach(function(c,k){
+        c.className="chip"; c.querySelector("svg").innerHTML=r.d.chips[k].p?'<path d="M20 6 9 17l-5-5"/>':'<path d="M6 6l12 12M18 6 6 18"/>';
+        c.lastChild.nodeValue=r.d.chips[k].t;
+      });
+      r.verdict.className="verdict "+r.d.verdict; r.verdict.textContent=r.d.vlabel;
+    });
+  }
+
+  var token=0;
+  async function cycle(){
+    var my=++token, alive=function(){return my===token;};
+    setStatus("run","New job"); $("job").classList.remove("show"); $("assignLine").classList.remove("show"); $("toast").classList.remove("show");
+    $("sMatch").textContent="—"; $("sMatch").className="v"; $("sMatchSub").textContent="Scoring every driver\u2026";
+    resetRows();
+    await sleep(200); if(!alive())return;
+
+    // 1) MATCH
+    $("job").classList.add("show"); setStatus("run","Scoring\u2026");
+    await sleep(750); if(!alive())return;
+    for(var i=0;i<rows.length;i++){ rows[i].el.classList.add("in"); await sleep(110); if(!alive())return; }
+    await sleep(250); if(!alive())return;
+
+    // 2) SCORE — factor chips light left-to-right
+    for(var f=0; f<FACT.length; f++){
+      (function(fi){ rows.forEach(function(r){ var c=r.chips[fi]; c.classList.add(r.d.chips[fi].p?"pass":"fail","on"); }); })(f);
+      await sleep(430); if(!alive())return;
+    }
+    rows.forEach(function(r){ countTo(r.sv,0,r.d.score,700); });
+    await sleep(850); if(!alive())return;
+
+    // 3) DECIDE — disqualify hard-constraint failures, pick the qualified winner
+    rows.forEach(function(r){
+      r.verdict.classList.add("show");
+      if(r.d.verdict==="win"){ r.el.classList.add("win"); }
+      else if(r.d.verdict==="dq"){ r.el.classList.add("dq","out"); }
+      else { r.el.classList.add("out"); }
+    });
+    anim(winner.el,[{transform:"scale(1)"},{transform:"scale(1.02)"},{transform:"scale(1)"}],{duration:420,easing:"cubic-bezier(.34,1.5,.64,1)"});
+    setStatus("live","Live");
+    $("sMatch").textContent="Marcus"; $("sMatch").className="v on"; $("sMatch").classList.add("bump"); setTimeout(function(){$("sMatch").classList.remove("bump");},480);
+    $("sMatchSub").textContent="Only fully-qualified · lighter load";
+    await sleep(1050); if(!alive())return;
+
+    // 4) DISPATCH
+    $("assignAv").textContent="M"; $("assignTxt").textContent="Assigned to Marcus"; $("assignLine").classList.add("show");
+    $("toast").className="toast"; $("toastTxt").innerHTML='Dispatched to <b>Marcus</b> · sequenced route in app';
+    $("toast").classList.add("show"); countTo($("sAssigned"),148,149,500);
+    await sleep(2500); if(!alive())return;
+    $("toast").classList.remove("show");
+    await sleep(600); if(!alive())return;
+
+    // 5) ADAPT — van breaks down -> re-match live
+    setStatus("run","Vehicle down \u2014 re-matching\u2026");
+    $("toast").className="toast warn show"; $("toastTxt").innerHTML='Marcus\u2019 van broke down \u00b7 <b>re-matching the job</b>';
+    winner.el.classList.remove("win"); winner.el.classList.add("dq","out");
+    winner.chips[0].classList.remove("pass"); winner.chips[0].classList.add("fail");
+    winner.chips[0].querySelector("svg").innerHTML='<path d="M6 6l12 12M18 6 6 18"/>';
+    winner.chips[0].lastChild.nodeValue="Van down";
+    winner.verdict.className="verdict dq show"; winner.verdict.textContent="Vehicle down";
+    countTo(winner.sv, winner.d.score, 22, 500);
+    await sleep(1300); if(!alive())return;
+
+    var priya=rows[3];
+    priya.el.classList.remove("out"); priya.el.classList.add("win");
+    priya.verdict.className="verdict win show"; priya.verdict.textContent="Now best qualified";
+    countTo(priya.sv, priya.d.score, 86, 600);
+    anim(priya.el,[{transform:"scale(1)"},{transform:"scale(1.03)"},{transform:"scale(1)"}],{duration:420,easing:"cubic-bezier(.34,1.5,.64,1)"});
+    $("assignAv").textContent="P"; $("assignTxt").textContent="Reassigned to Priya";
+    $("sMatch").textContent="Priya"; $("sMatch").classList.add("bump"); setTimeout(function(){$("sMatch").classList.remove("bump");},480);
+    $("sMatchSub").textContent="Re-matched in 0.4s · no dispatcher";
+    await sleep(500); if(!alive())return;
+    $("toast").className="toast show"; $("toastTxt").innerHTML='Re-matched to <b>Priya</b> in 0.4s · customer ETA updated';
+    countTo($("sAssigned"),149,150,500);
+    setStatus("live","Live");
+    await sleep(2700); if(!alive())return;
+    $("toast").classList.remove("show");
+    await sleep(650); if(!alive())return;
+
+    // loop
+    $("job").classList.remove("show"); $("assignLine").classList.remove("show");
+    rows.forEach(function(r){ r.el.classList.remove("in"); });
+    await sleep(520); if(!alive())return;
+    cycle();
+  }
+
+  // fluid scaling + off-screen pause
+  var CARD=document.querySelector(".card"), STAGE=$("stage"), onScreen=true;
+  function fitCard(){ if(!CARD||!STAGE)return; var w=STAGE.clientWidth||window.innerWidth; var s=w/960;
+    CARD.style.transform="scale("+s+")"; var hh=CARD.offsetHeight*s; STAGE.style.height=hh+"px";
+    try{parent.postMessage({syncnoxHeight:Math.ceil(hh)},"*");}catch(e){} }
+  window.addEventListener("load",fitCard); window.addEventListener("resize",fitCard);
+  if(window.ResizeObserver){try{new ResizeObserver(fitCard).observe(STAGE||document.body);}catch(e){}}
+  if("IntersectionObserver" in window){try{new IntersectionObserver(function(es){onScreen=es[0].isIntersecting;},{threshold:0.05}).observe(STAGE||document.body);}catch(e){}}
+
+  setTimeout(function(){ cycle(); fitCard(); },80);
+})();
+</script>
+</body>
+</html>
